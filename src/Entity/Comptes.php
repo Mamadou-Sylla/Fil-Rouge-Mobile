@@ -34,7 +34,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *        "get"={"path"="/comptes/{id}"},
  *        "put"={"path"="/comptes/{id}"},
  *        "delete"={"path"="/comptes/{id}"},
- *        "patch"={"path"="/comptes/{id}", "security"="is_granted('ROLE_SUPER_ADMIN') or is_granted('ROLE_CAISSIER')", "denormalization_context"={"groups"={"depot:write"}}}
+ *        "Operations"={"method"="PATCH", "path"="/comptes/{id}", "route_name"="operation"}
  *     }
  * )
  * @ApiFilter(BooleanFilter::class, properties={"statut"})
@@ -64,7 +64,7 @@ class Comptes
 
     /**
      * @ORM\Column(type="string")
-     * @Groups({"compte:read", "compte:write"})
+     * @Groups({"compte:read", "compte:write", "depot:write"})
      * @Assert\NotBlank(message="Le numero de compte est obligatoire")
      */
     private $numeroCompte;
