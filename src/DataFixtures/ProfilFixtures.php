@@ -23,21 +23,21 @@ class ProfilFixtures extends Fixture
 
         $profil_admin_systeme = new Profil();
         $profil_admin_systeme
-            ->setLibelle("SUPER_ADMIN")
+            ->setLibelle("AdminSysteme")
             ;
         $this->addReference(self::Profil_AdminSysteme, $profil_admin_systeme);
         $manager->persist($profil_admin_systeme);
 
         $profil_admin_agence = new Profil();
         $profil_admin_agence
-            ->setLibelle("ADMIN")
+            ->setLibelle("AdminAgence")
             ;
         $this->addReference(self::Profil_AdminAgence, $profil_admin_agence);
         $manager->persist($profil_admin_agence);
 
         $profil_caissier = new Profil();
         $profil_caissier
-            ->setLibelle("CAISSIER")
+            ->setLibelle("Caissier")
             ;
         $this->addReference(self::Profil_Caissier, $profil_caissier);
         $manager->persist($profil_caissier);

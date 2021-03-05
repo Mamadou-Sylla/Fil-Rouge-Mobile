@@ -35,7 +35,7 @@ class ComptesController extends AbstractController
      *   path="api/admin/systemes/comptes/{id}",
      *   methods={"PATCH"}
      *     )
-     * @Security("is_granted('ROLE_SUPER_ADMIN') or is_granted('ROLE_CAISSIER')", message="Vous n'avez pas acces à ce ressource")
+     * @Security("is_granted('ROLE_AdminSysteme') or is_granted('ROLE_Caissier')", message="Vous n'avez pas acces à ce ressource")
      */
 
   public function OperationDepot($id, Request $request): Response

@@ -68,13 +68,5 @@ class CompteService
 
         $data = $request->getContent();
         $data = $this->serializer->decode($data, "json");
-        //$data
-        /*$errors = $validator->validate($data);
-        if ($errors) {
-            $errorsString =$serializer->serialize($errors,"json");
-            return new JsonResponse( $errorsString ,Response::HTTP_BAD_REQUEST,[],true);
-        }
-        $manager->flush();
-        return new JsonResponse($data, 200);*/
     }
 }

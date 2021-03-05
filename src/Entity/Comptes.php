@@ -5,13 +5,16 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\ComptesRepository;
 use ApiPlatform\Core\Annotation\ApiFilter;
+use Doctrine\Common\Collections\Collection;
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints\Count;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints as Assert;
 use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\BooleanFilter;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 
 
 /**
@@ -22,13 +25,14 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  *     attributes={
  *      "normalization_context"={"groups"={"compte:read"}},
  *      "denormalization_context"={"groups"={"compte:write"}},
- *      "security"="is_granted('ROLE_SUPER_ADMIN')",
+ *      "security"="is_granted('ROLE_AdminSysteme')",
  *      "security_message"="Vous n'avez pas acces à ce ressource",
  *     "pagination_items_per_page"=10
  *      },
  *     collectionOperations={
  *         "get"={"path"="/comptes"},
- *         "post"={"path"="/comptes"}
+ *         "post"={"path"="/comptes"},
+ *         "compte"={"method"="GET", "path"="/compte/parts", "normalization_context"={"groups"={"partCompte:read"}}}
  *     },
  *     itemOperations={
  *        "get"={"path"="/comptes/{id}"},
@@ -65,14 +69,12 @@ class Comptes
     /**
      * @ORM\Column(type="string")
      * @Groups({"compte:read", "compte:write", "depot:write"})
-     * @Assert\NotBlank(message="Le numero de compte est obligatoire")
      */
     private $numeroCompte;
 
     /**
      * @ORM\Column(type="date", nullable=true)
      * @Groups({"compte:read", "compte:write"})
-     * @Assert\NotBlank(message="La date creation est obligatoire")
      */
     private $dateCreation;
 
@@ -80,8 +82,20 @@ class Comptes
      * @ORM\Column(type="integer")
      * @Groups({"compte:read", "compte:write", "depot:write"})
      * @Assert\NotBlank(message="Le solde est obligatoire")
+     * @Assert\GreaterThanOrEqual(value = 700000, message="Le solde doit superieur a 700000 lors du creation")
      */
     private $solde;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="compte")
+     * @Groups({"partCompte:read"})
+     */
+    private $transactions;
+
+    public function __construct()
+    {
+        $this->transactions = new ArrayCollection();
+    }
 
 
     public function getId(): ?int
@@ -145,6 +159,36 @@ class Comptes
     public function setSolde(int $solde): self
     {
         $this->solde = $solde;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Transaction[]
+     */
+    public function getTransactions(): Collection
+    {
+        return $this->transactions;
+    }
+
+    public function addTransaction(Transaction $transaction): self
+    {
+        if (!$this->transactions->contains($transaction)) {
+            $this->transactions[] = $transaction;
+            $transaction->setCompte($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransaction(Transaction $transaction): self
+    {
+        if ($this->transactions->removeElement($transaction)) {
+            // set the owning side to null (unless already changed)
+            if ($transaction->getCompte() === $this) {
+                $transaction->setCompte(null);
+            }
+        }
 
         return $this;
     }

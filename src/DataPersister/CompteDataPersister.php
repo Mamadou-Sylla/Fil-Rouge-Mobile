@@ -8,6 +8,7 @@ use App\Entity\Comptes;
 use function Matrix\trace;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Validator\Constraints\DateTime;
 use ApiPlatform\Core\DataPersister\ContextAwareDataPersisterInterface;
 
 class CompteDataPersister implements ContextAwareDataPersisterInterface
@@ -29,6 +30,8 @@ class CompteDataPersister implements ContextAwareDataPersisterInterface
 
     public function persist($data, array $context = [])
     {
+        $data->setNumeroCompte($this->generateRandomString().$this->generateRandomNumber());
+        $data->setDateCreation(new \DateTime);
         $this->entityManager->persist($data);
         $this->entityManager->flush();
     }
@@ -42,4 +45,24 @@ class CompteDataPersister implements ContextAwareDataPersisterInterface
         return new Response("Comptes");
     }
 
+   
+    function generateRandomString($length = 3) {
+        $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(1, $charactersLength - 1)];
+        }
+        return $randomString;
+    }
+
+    function generateRandomNumber($length = 5) {
+        $characters = '0123456789';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(1, $charactersLength - 1)];
+        }
+        return $randomString;
+    }
 }

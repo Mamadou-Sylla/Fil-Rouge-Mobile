@@ -2,13 +2,35 @@
 
 namespace App\Entity;
 
-use App\Repository\ProfilRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\ProfilRepository;
+use Doctrine\Common\Collections\Collection;
+use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass=ProfilRepository::class)
+ * @ApiResource(
+ *     normalizationContext={"groups"={"profil:read"}},
+ *     denormalizationContext={"groups"={"profil:write"}},
+ *     routePrefix="/profil",
+ *     attributes={
+ *      "security"="is_granted('ROLE_SUPER_ADMIN')",
+ *      "security_message"="Vous n'avez pas acces à ce ressource",
+ *     "pagination_items_per_page"=10
+ * },
+ *     collectionOperations={
+ *     "get"={"path"=""},
+ *      "post"={"path"=""}
+ *     },
+ *      itemOperations={
+ *     "get"={"path"="/{id}"},
+ *     "put"={"path"="/{id}"},
+ *     "delete"={"path"="/{id}"}
+ *     }
+ * )
  */
 class Profil
 {
@@ -16,16 +38,19 @@ class Profil
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
+     * @Groups({"admin_system:read", "system:read", "agence:read", "caissier:read", "profil:read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"profil:read", "admin_system:read", "system:read", "agence:read", "caissier:read", "profil:read"})
      */
     private $libelle;
 
     /**
      * @ORM\OneToMany(targetEntity=User::class, mappedBy="profils")
+     * @ApiSubresource()
      */
     private $users;
 

@@ -8,22 +8,25 @@ use Doctrine\Common\Collections\Collection;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
+
 
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
  * @ORM\InheritanceType("JOINED")
  * @ORM\DiscriminatorColumn(name="type",  type="string")
- * @ORM\DiscriminatorMap({"AdminSysteme"="AdminSysteme", "AdminAgence" = "AdminAgence", "Caissier" = "Caissier", "user" ="User"})
+ * @ORM\DiscriminatorMap({"AdminSysteme"="AdminSysteme", "AdminAgence" = "AdminAgence", "Caissier" = "Caissier", "user" ="User", "UserAgence"="UserAgence"})
  * @ApiResource(
  * 
  *     normalizationContext={"groups"={"admin_system:read"}},
  *     denormalizationContext={"groups"={"admin_system:write"}},
- *     routePrefix="/admin/systeme",
+ *     routePrefix="/users",
  *     attributes={
- *      "security"="is_granted('ROLE_SUPER_ADMIN')",
+ *      "security"="is_granted('ROLE_AdminSysteme') or is_granted('ROLE_AdminAgence')",
  *      "security_message"="Vous n'avez pas acces à ce ressource",
  *     "pagination_items_per_page"=10
  * },
@@ -33,76 +36,74 @@ use Symfony\Component\Validator\Constraints as Assert;
  *     },
  *      itemOperations={
  *     "get"={"path"="/{id}"},
- *     "put"={"path"="/{id}"}
+ *     "put"={"path"="/{id}"},
+ *     "delete"={"path"="/{id}"}
  *     }
  * )
  * */
 class User implements UserInterface
 {
+
     /**
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"admin_system:read"})
+     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read"})
      */
     protected $id;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
-     * @Groups({"admin_system:read"})
+     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
      */
     private $username;
 
     /**
      * @ORM\Column(type="json")
-     * @Groups({"admin_system:read"})
+     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
      */
     private $roles = [];
 
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
-     * @Assert\Count(
-     *      min = 6,
-     *      max = 12,
-     *      minMessage = "Mot de passe incorrecte: insuffissant",
-     *      maxMessage = "Mot de passe incorrecte: trop de caractére"
-     * )
+     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
      */
     private $password;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"admin_system:read"})
+     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
      */
     private $prenom;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"admin_system:read"})
+     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
      */
     private $nom;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"admin_system:read"})
+     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
      */
     private $telephone;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"admin_system:read"})
+     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
      */
     private $cni;
 
     /**
      * @ORM\Column(type="boolean")
-     * 
+     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read"})
      */
-    private $etat;
+    private $etat = false;
 
     /**
      * @ORM\ManyToOne(targetEntity=Profil::class, inversedBy="users")
+     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
      */
     private $profils;
 
@@ -111,11 +112,22 @@ class User implements UserInterface
      */
     private $comptes;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Agence::class, inversedBy="users")
+     */
+    private $agence;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Transaction::class, mappedBy="users")
+     */
+    private $transactions;
+
 
     public function __construct()
     {
         $this->users = new ArrayCollection();
         $this->comptes = new ArrayCollection();
+        $this->transactions = new ArrayCollection();
     }
 
 
@@ -156,7 +168,6 @@ class User implements UserInterface
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
-
         return $this;
     }
 
@@ -297,5 +308,50 @@ class User implements UserInterface
         return $this;
     }
 
-   
+    public function getAgence(): ?Agence
+    {
+        return $this->agence;
+    }
+
+    public function setAgence(?Agence $agence): self
+    {
+        $this->agence = $agence;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Transaction[]
+     */
+    public function getTransactions(): Collection
+    {
+        return $this->transactions;
+    }
+
+    public function addTransaction(Transaction $transaction): self
+    {
+        if (!$this->transactions->contains($transaction)) {
+            $this->transactions[] = $transaction;
+            $transaction->setUsers($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransaction(Transaction $transaction): self
+    {
+        if ($this->transactions->removeElement($transaction)) {
+            // set the owning side to null (unless already changed)
+            if ($transaction->getUsers() === $this) {
+                $transaction->setUsers(null);
+            }
+        }
+
+        return $this;
+    }
+
+  
+
+
+  
 }
