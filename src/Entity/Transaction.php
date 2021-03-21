@@ -17,17 +17,20 @@ use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
  * @ApiResource(
  *     routePrefix="/transactions",
  *     attributes={
- *      "security"="is_granted('ROLE_AdminSysteme') or is_granted('ROLE_AdminAgence')",
+ *      "security"="is_granted('ROLE_AdminSysteme') or is_granted('ROLE_AdminAgence') or is_granted('ROLE_UserAgence')",
  *      "security_message"="Vous n'avez pas acces à ce ressource",
  *     "pagination_items_per_page"=10
  * },
  *     collectionOperations={
- *     "get"={"path"=""},
+ *     "get"={"path"="", "normalization_context"={"groups"={"transaction:read"}}},
+ *     "user"={"path"="/currentuser"},
  *     "post"={"path"=""},
  *     "agence"={"method"="GET", "path"="/agence/parts", "normalization_context"={"groups"={"parts:read"}}},
+ *     "transaction"={"method"="GET", "path"="/mestransactions", "normalization_context"={"groups"={"trnt:read"}}},
  *     },
  *      itemOperations={
  *     "get"={"path"="/{id}"},
+ *     "code"={"method"="GET", "path"="/code"},
  *     "put"={"path"="/{id}"},
  *     "delete"={"path"="/{id}"}
  *     }
@@ -57,6 +60,7 @@ class Transaction
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @ApiFilter(SearchFilter::class, properties={"code_transfert":"exact"})
      * @Groups({"transaction:read", "transaction:write"})
      */
     private $code_transfert;
@@ -121,6 +125,7 @@ class Transaction
      * @ORM\Column(type="string", length=255)
      * @ApiFilter(SearchFilter::class, properties={"type":"exact"}) 
      * @Assert\NotBlank(message="Le type est obligatoire")
+     * @Groups({"transaction:read", "transaction:write"})
      */
     private $type;
 
@@ -132,7 +137,7 @@ class Transaction
     /**
      * @ORM\Column(type="boolean")
      */
-    private $statutTransaction;
+    private $statutTransaction = false;
 
     public function getId(): ?int
     {

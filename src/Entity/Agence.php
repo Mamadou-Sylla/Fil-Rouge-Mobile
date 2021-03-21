@@ -43,61 +43,55 @@ class Agence
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"admin_agence:read", "admin_agence:write"})
+     * @Groups({"admin_agence:read", "admin_agence:write", "admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"agence:write"})
      */
     private $adresse;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"admin_agence:read", "admin_agence:write"})
+     * @Groups({"admin_agence:read", "admin_agence:write", "admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"agence:write"})
      */
     private $telephone;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"admin_agence:read", "admin_agence:write"})
+     * @Groups({"admin_agence:read", "admin_agence:write", "admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"agence:write"})
      */
     private $nom;
 
     /**
      * @ORM\Column(type="boolean")
-     * @Groups({"admin_agence:read", "admin_agence:write"})
+     * @Groups({"admin_agence:read", "admin_agence:write", "admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"agence:write"})
      */
     private $statut = false;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
-     * @Groups({"admin_agence:read", "admin_agence:write"})
+     * @Groups({"admin_agence:read", "admin_agence:write", "admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"agence:write"})
      */
     private $latitude;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
-     * @Groups({"admin_agence:read", "admin_agence:write"})
+     * @Groups({"admin_agence:read", "admin_agence:write", "admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"agence:write"})
      */
     private $longitude;
 
     /**
      * @ORM\OneToMany(targetEntity=User::class, mappedBy="agence", cascade={"persist", "remove"})
-     * @Groups({"admin_agence:read", "admin_agence:write"})
      */
     private $users;
 
     /**
      * @ORM\OneToOne(targetEntity=Comptes::class, cascade={"persist", "remove"})
-     * @Groups({"admin_agence:read", "admin_agence:write"})
+     * @Groups({"admin_agence:read", "admin_agence:write", "admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"agence:write"})
      */
     private $compte;
 
-    /**
-     * @ORM\OneToMany(targetEntity=AdminAgence::class, mappedBy="agence")
-     */
-    private $adminagence;
 
     public function __construct()
     {
         $this->users = new ArrayCollection();
-        $this->adminagence = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -219,33 +213,4 @@ class Agence
         return $this;
     }
 
-    /**
-     * @return Collection|AdminAgence[]
-     */
-    public function getAdminagence(): Collection
-    {
-        return $this->adminagence;
-    }
-
-    public function addAdminagence(AdminAgence $adminagence): self
-    {
-        if (!$this->adminagence->contains($adminagence)) {
-            $this->adminagence[] = $adminagence;
-            $adminagence->setAgence($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAdminagence(AdminAgence $adminagence): self
-    {
-        if ($this->adminagence->removeElement($adminagence)) {
-            // set the owning side to null (unless already changed)
-            if ($adminagence->getAgence() === $this) {
-                $adminagence->setAgence(null);
-            }
-        }
-
-        return $this;
-    }
 }

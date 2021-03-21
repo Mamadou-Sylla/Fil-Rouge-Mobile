@@ -6,6 +6,7 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\Collection;
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -32,6 +33,7 @@ use Symfony\Component\Security\Core\Encoder\EncoderFactoryInterface;
  * },
  *     collectionOperations={
  *     "get"={"path"=""},
+ *     "user"={"method"="GET", "path"="/currentuser"},
  *      "post"={"path"=""}
  *     },
  *      itemOperations={
@@ -48,13 +50,13 @@ class User implements UserInterface
      * @ORM\Id
      * @ORM\GeneratedValue
      * @ORM\Column(type="integer")
-     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read"})
+     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read", "transaction:read"})
      */
     protected $id;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
-     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
+     * @Groups({"transaction:read", "admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
      */
     private $username;
 
@@ -73,31 +75,31 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
+     * @Groups({"transaction:read", "admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
      */
     private $prenom;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
+     * @Groups({"transaction:read", "admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
      */
     private $nom;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
+     * @Groups({"transaction:read", "admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
      */
     private $telephone;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
+     * @Groups({"transaction:read", "admin_system:read", "systeme:read", "agence:read", "caissier:read" ,"admin_system:write", "system:write", "agence:write", "caissier:write"})
      */
     private $cni;
 
     /**
      * @ORM\Column(type="boolean")
-     * @Groups({"admin_system:read", "systeme:read", "agence:read", "caissier:read"})
+     * @Groups({"transaction:read", "admin_system:read", "systeme:read", "agence:read", "caissier:read"})
      */
     private $etat = false;
 
@@ -114,6 +116,8 @@ class User implements UserInterface
 
     /**
      * @ORM\ManyToOne(targetEntity=Agence::class, inversedBy="users")
+     * @Groups({"systeme:read", "agence:read", "caissier:read"})
+     * @ApiSubresource()
      */
     private $agence;
 

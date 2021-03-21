@@ -2,6 +2,10 @@
 namespace App\DataPersister;
 
 use App\Entity\Transaction;
+use App\Repository\AgenceRepository;
+use App\Repository\ComptesRepository;
+use App\Repository\UserAgenceRepository;
+use App\Repository\UserRepository;
 use App\Service\TransactionService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\TransactionRepository;
@@ -9,6 +13,10 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use ApiPlatform\Core\DataPersister\ContextAwareDataPersisterInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\HttpFoundation\Request;
+
 
 class TransactionDataPersister implements ContextAwareDataPersisterInterface
 {
@@ -18,13 +26,20 @@ class TransactionDataPersister implements ContextAwareDataPersisterInterface
     private $entityManager;
     private $transactionService;
     private $repo;
+    private $tokenStorage;
+    private $serializer;
+    private $repoUser;
+    private $repoCompt;
 
 
-    public function __construct(EntityManagerInterface $em, TransactionService $transactionService, TransactionRepository $repo){
+    public function __construct(ComptesRepository $repoCompt, AgenceRepository $repoUser, EntityManagerInterface $em, TransactionService $transactionService, TransactionRepository $repo, TokenStorageInterface $tokenStorage, SerializerInterface $serializer){
         $this->entityManager=$em;
         $this->transactionService=$transactionService;
         $this->repo=$repo;
-
+        $this->tokenStorage=$tokenStorage;
+        $this->serializer=$serializer;
+        $this->repoUser=$repoUser;
+        $this->repoCompt=$repoCompt;
     }
     public function supports($data, array $context = []): bool
     {
@@ -32,11 +47,20 @@ class TransactionDataPersister implements ContextAwareDataPersisterInterface
     }
 
     public function persist($data, array $context = [])
-    {      
+    {
+
         if ($data->getType()=='Depot') {
             # code...
-            if ($data->getCompte()->getSolde()>= 5000 && $data->getCompte()->getSolde()>$data->getMontant()) {
+            $currentUser = $this->tokenStorage->getToken()->getUser();
+            //dd($currentUser->getAgence());
+            $id=$currentUser->getAgence()->getId();
+            $ok = $this->repoUser->findOneBy(['id' => $id]);
+            $idC=$ok->getCompte();
+            $compte=$this->repoCompt->findOneBy(['id' => $idC]);
+           // dd($compte->getSolde());
+            if ($compte->getSolde()>= 5000 && $compte->getSolde()>$data->getMontant()) {
                 # code...
+                //dd($data);
                 $code=($this->transactionService->generateCode());
                 $data->setCodeTransfert(wordwrap($code, 3, "-",  true));
                 $data->setDateDepot(new \DateTime);
@@ -48,13 +72,17 @@ class TransactionDataPersister implements ContextAwareDataPersisterInterface
                 $data->setPartTransfert($parts['PartTransfert']);
                 $data->setPartDepot($parts['PartDepot']);
                 $data->setPartRetrait($parts['PartRetrait']);
-                $solde=($data->getCompte()->getSolde() + $parts['PartDepot']) - $data->getMontant();
-                $data->getCompte()->setSolde($solde);
+                $solde=($compte->getSolde() + $parts['PartDepot']) - $data->getMontant();
+                $compte->setSolde($solde);
+
+                $data->setUsers($currentUser);
+                $data->setCompte($compte);
+
                 //dd($data);
-                 $this->entityManager->persist($data);
-                 $this->entityManager->flush(); 
+                $this->entityManager->persist($data);
+                $this->entityManager->flush();
                  return new JsonResponse("Depot effectué avec succes", Response::HTTP_CREATED, [], true);
-           
+
             }
             else{
                 return new JsonResponse("Vous n'avez pas assez d'argent pour faire un transfert", Response::HTTP_FORBIDDEN, [], true);
@@ -63,6 +91,13 @@ class TransactionDataPersister implements ContextAwareDataPersisterInterface
 
         elseif ($data->getType()=='Retrait') {
             # code...
+            $currentUser = $this->tokenStorage->getToken()->getUser();
+            //dd($currentUser->getAgence());
+            $id=$currentUser->getAgence()->getId();
+            $ok = $this->repoUser->findOneBy(['id' => $id]);
+            $idC=$ok->getCompte();
+            $compte=$this->repoCompt->findOneBy(['id' => $idC]);
+            // dd($compte->getSolde());
             $verify = new Transaction();
             $verify=$this->repo->findOneBy(["code_transfert" => $data->getCodeTransfert()]);
             
@@ -81,11 +116,14 @@ class TransactionDataPersister implements ContextAwareDataPersisterInterface
                         $data->setPartTransfert($parts['PartTransfert']);
                         $data->setPartDepot($parts['PartDepot']);
                         $data->setPartRetrait($parts['PartRetrait']);
-                        $solde=($data->getCompte()->getSolde() + $parts['PartDepot']) + $data->getMontant();
+                        $solde=($compte->getSolde() + $parts['PartDepot']) + $data->getMontant();
                         $data->setStatutTransaction(true);
-                        $data->getCompte()->setSolde($solde);
-                       //$this->entityManager->persist($data);
-                       // $this->entityManager->flush();
+                        $compte->setSolde($solde);
+                       $data->setUsers($currentUser);
+                       $data->setCompte($compte);
+                       //dd($data);
+                       $this->entityManager->persist($data);
+                       $this->entityManager->flush();
                         return new JsonResponse("Retrait effectuée avec succes", Response::HTTP_CREATED, [], true); 
                         
                // }

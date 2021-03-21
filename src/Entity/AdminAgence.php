@@ -7,6 +7,8 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Repository\AdminAgenceRepository;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
+
 
 
 /**
@@ -41,25 +43,12 @@ class AdminAgence extends User
      */
     protected $id;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Agence::class, inversedBy="adminagence")
-     */
-    private $agence;
+
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getAgence(): ?Agence
-    {
-        return $this->agence;
-    }
 
-    public function setAgence(?Agence $agence): self
-    {
-        $this->agence = $agence;
-
-        return $this;
-    }
 }

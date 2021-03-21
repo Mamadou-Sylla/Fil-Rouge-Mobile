@@ -68,7 +68,7 @@ class Comptes
 
     /**
      * @ORM\Column(type="string")
-     * @Groups({"compte:read", "compte:write", "depot:write"})
+     * @Groups({"compte:read", "compte:write", "depot:write", "systeme:read", "agence:read", "caissier:read" ,"agence:write"})
      */
     private $numeroCompte;
 
@@ -80,7 +80,7 @@ class Comptes
 
     /**
      * @ORM\Column(type="integer")
-     * @Groups({"compte:read", "compte:write", "depot:write"})
+     * @Groups({"compte:read", "compte:write", "depot:write", "systeme:read", "agence:read", "caissier:read" ,"agence:write"})
      * @Assert\NotBlank(message="Le solde est obligatoire")
      * @Assert\GreaterThanOrEqual(value = 700000, message="Le solde doit superieur a 700000 lors du creation")
      */

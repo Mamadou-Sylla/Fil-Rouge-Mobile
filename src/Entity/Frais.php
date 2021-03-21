@@ -4,10 +4,17 @@ namespace App\Entity;
 
 use App\Repository\FraisRepository;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Core\Annotation\ApiResource;
 
 /**
  * @ORM\Entity(repositoryClass=FraisRepository::class)
- */
+ * @ApiResource(
+ *     routePrefix="/frais",
+ *     collectionOperations={
+ *     "get"={"path"=""},
+ *     "post"={"path"=""},
+ *     }
+ * )  */
 class Frais
 {
     /**
